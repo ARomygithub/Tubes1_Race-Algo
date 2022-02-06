@@ -246,7 +246,7 @@ public class Bot {
                 resi = new Result(res);
                 --resi.ctLizard;
                 xi = min(x+resi.speed,end); yi = y;
-                if(xi!=x) {
+                if(xi!=x && xi==x+resi.speed) {
                     int curDamage=0; int curWall=0;
                     Terrain curTerrain = gameState.lanes.get(yi)[xi].terrain;
                     if(curTerrain==Terrain.MUD) {
