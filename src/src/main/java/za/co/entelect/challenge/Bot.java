@@ -80,7 +80,7 @@ public class Bot {
                 if(gameState.lanes.get(i)[j].terrain==Terrain.WALL) {
                     ctWall[i][j] = ctWall[i][j-1]+1;
                     ctDamage[i][j] = ctDamage[i][j-1]+2;
-                } else if(gameState.lanes.get(i)[0].terrain==Terrain.MUD || gameState.lanes.get(i)[0].terrain==Terrain.OIL_SPILL) {
+                } else if(gameState.lanes.get(i)[j].terrain==Terrain.MUD || gameState.lanes.get(i)[j].terrain==Terrain.OIL_SPILL) {
                     ctWall[i][j] = ctWall[i][j-1];
                     ctDamage[i][j] = ctDamage[i][j-1]+1;
                 } else {
