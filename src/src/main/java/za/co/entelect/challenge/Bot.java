@@ -57,7 +57,7 @@ public class Bot {
         }
         this.start = gameState.player.position.block-gameState.lanes.get(0)[0].position.block;
         this.end = gameState.lanes.get(0)[gameState.lanes.get(0).length-1].position.block - gameState.lanes.get(0)[0].position.block;
-        int curLane = gameState.player.position.lane;
+        int curLane = gameState.player.position.lane -1;
         Result now = new Result(gameState);
 
         ctWall = new int[ctLane][end+1];
