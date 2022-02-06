@@ -244,6 +244,7 @@ public class Bot {
             if(res.ctLizard>0) {
 //                xi, yi, resi, prevSpeedi = USE_LIZARD(x,y,res,prevSpeed);
                 resi = new Result(res);
+                --resi.ctLizard;
                 xi = min(x+resi.speed,end); yi = y;
                 if(xi!=x) {
                     int curDamage=0; int curWall=0;
