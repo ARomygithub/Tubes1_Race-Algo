@@ -15,6 +15,7 @@ public class Main {
 
     private static final String ROUNDS_DIRECTORY = "rounds";
     private static final String STATE_FILE_NAME = "state.json";
+//    public static int prevSpeed=-1;
 
     /**
      * Read the current state, feed it to the bot, get the output and print it to stdout
@@ -38,8 +39,9 @@ public class Main {
                 GameState gameState = gson.fromJson(state, GameState.class);
 //                printPowerUps(gameState);
 //                printWorldMap(gameState);
-                Command command = new Bot(random, gameState).run();
-                System.out.println(String.format("C;%d;%s", roundNumber, command.render()));
+                String command = new Bot(random, gameState).run();
+                System.out.println(String.format("C;%d;%s", roundNumber, command));
+//                prevSpeed = gameState.player.speed;
 //                break;
             } catch (Exception e) {
                 e.printStackTrace();
