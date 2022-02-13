@@ -6,8 +6,7 @@ import za.co.entelect.challenge.enums.*;
 
 import java.util.*;
 
-import static java.lang.Math.max;
-import static java.lang.Math.min;
+import static java.lang.Math.*;
 
 public class Bot {
 
@@ -28,6 +27,7 @@ public class Bot {
     private int start, end;
     private int ctLane;
     private int[][] truck = new int[][] {{-1,-1}, {-1,-1}};
+    final private int track_length = 600;
 //    private int ctDebug=0;
 
     public Bot(Random random, GameState gameState) {
@@ -109,7 +109,71 @@ public class Bot {
 
 //        System.out.printf("%d time, %d speed, %d damage, %d ctBoost, %d boostcounter%n", bestRes.time, bestRes.speed, bestRes.damage, bestRes.ctBoost, bestRes.boostcounter);
 //        System.out.printf("%d truck[0][0] %d truck[0][1] %d truck[1][0] %d truck[1][1]%n", truck[0][0], truck[0][1], truck[1][0], truck[1][1]);
+        boolean attack = bestCom.equals("NOTHING");
+        if(bestCom.equals("ACCELERATE")) {
+            if(now.boostcounter==1) {
+                attack = true;
+            } else {
+                if(min(nextSpeed(now.speed),maxSpeedIfDamage[now.damage])==now.speed) attack=true;
+            }
+        }
+        if(attack) {
+            attackStrategy(now);
+        }
         return bestCom;
+    }
+
+    private void attackStrategy(Result cur) {
+        int myX = gameState.player.position.block;
+        int myY = gameState.player.position.lane-1;
+        int otherX = gameState.opponent.position.block;
+        int otherY = gameState.opponent.position.lane-1;
+        int otherSpeed = gameState.opponent.speed;
+        if(myX>otherX) {
+            if(cur.ctOil>0) {
+                if(otherY==myY && otherX+otherSpeed>=myX) {
+                    bestCom = "USE_OIL";
+                }
+            }
+            if(cur.ctTweet>0) {
+                if(!bestCom.equals("USE_OIL")) {
+                    boolean flagTruck=true;
+                    int xLane = myX - gameState.lanes.get(0)[0].position.block;
+                    List<Lane[]> curLanes = gameState.lanes;
+                    Terrain myTerrain = curLanes.get(myY)[xLane].terrain;
+                    if(myTerrain == Terrain.WALL || myTerrain == Terrain.MUD || myTerrain == Terrain.OIL_SPILL) {
+                        flagTruck = false;
+                    }
+                    if(myY>0) {
+                        Terrain leftTerrain = curLanes.get(myY-1)[xLane].terrain;
+                        if(!(leftTerrain == Terrain.WALL || leftTerrain == Terrain.MUD || leftTerrain == Terrain.OIL_SPILL)) {
+                            flagTruck = false;
+                        }
+                    }
+                    if(myY+1<ctLane) {
+                        Terrain rTerrain = curLanes.get(myY+1)[xLane].terrain;
+                        if(!(rTerrain == Terrain.WALL || rTerrain == Terrain.MUD || rTerrain == Terrain.OIL_SPILL)) {
+                            flagTruck = false;
+                        }
+                    }
+                    if(flagTruck) {
+                        bestCom = "USE_TWEET " + (myY+1) + " " + (myX);
+                    }
+                }
+            }
+        } else {
+            if(cur.ctEmp>0) {
+                if(cur.speed+myX>otherX && abs(myY-otherY)==1) {
+                    bestCom = "USE_EMP";
+                }
+                if(otherX+cur.ctEmp*15>=track_length) {
+                    bestCom = "USE_EMP";
+                }
+                if(otherSpeed==15 && cur.ctEmp>2) {
+                    bestCom = "USE_EMP";
+                }
+            }
+        }
     }
 
     private int nextSpeed(int x) {
