@@ -27,6 +27,7 @@ public class Bot {
     private int[][] ctDamage;
     private int start, end;
     private int ctLane;
+//    private int ctDebug=0;
 
     public Bot(Random random, GameState gameState) {
         this.random = random;
@@ -52,7 +53,9 @@ public class Bot {
         for(int i=0;i<prefix.length;i++) {
             prefix[i][0] = new Result(gameState.lanes.get(i)[0].terrain);
             for(int j=1;j<prefix[0].length;j++) {
-                prefix[i][j] = prefix[i][j-1].add(new Result(gameState.lanes.get(i)[j].terrain));
+//                prefix[i][j] = prefix[i][j-1].add(new Result(gameState.lanes.get(i)[j].terrain));
+                prefix[i][j] = new Result(prefix[i][j-1]);
+                prefix[i][j].add(new Result(gameState.lanes.get(i)[j].terrain));
             }
         }
         this.start = gameState.player.position.block-gameState.lanes.get(0)[0].position.block;
@@ -91,6 +94,8 @@ public class Bot {
         }
 
         dfs(0,start, curLane, now, "NONE");
+
+//        System.out.printf("%d time, %d speed, %d damage, %d ctBoost, %d boostcounter%n", bestRes.time, bestRes.speed, bestRes.damage, bestRes.ctBoost, bestRes.boostcounter);
         return bestCom;
     }
 
@@ -132,6 +137,36 @@ public class Bot {
         }
     }
 
+    private int[] updateXiYi(int x, int xi, int yi, Result resi) {
+        // tambah temp ke resi (powerups).
+        // damage dari ctWall, ctDamage, boosting, boostcounter juga.
+        Result temp = new Result(prefix[yi][xi]);
+        if(x>=0) {
+            temp.minus(prefix[yi][x]);
+        }
+        resi.add(temp);
+        int curDamage= ctDamage[yi][xi];
+        int curWall = ctWall[yi][xi];
+        if(x>=0) {
+            curDamage -= ctDamage[yi][x];
+            curWall -= ctWall[yi][x];
+        }
+        if(curDamage>0) {
+            if(curWall>0) {
+                resi.speed = min(3,resi.speed);
+            } else {
+                resi.speed = max(3,prevSpeed(resi.speed));
+            }
+            resi.damage = min(5,resi.damage+curDamage);
+            resi.speed = min(resi.speed, maxSpeedIfDamage[resi.damage]);
+            if(resi.boosting) {
+                resi.boosting = false;
+                resi.boostcounter = 0;
+            }
+        }
+        return new int[] {xi,yi};
+    }
+
     private void dfs(int t, int x, int y, Result res, String com) {
         if(res.boosting) {
             --res.boostcounter;
@@ -141,6 +176,7 @@ public class Bot {
             }
         }
         int xi, yi;
+        int[] xiyi;
         Result resi;
         String comi;
         if(res.damage>=5) {
@@ -159,6 +195,7 @@ public class Bot {
                 if(resi.greaterThan(bestRes)) {
                     bestRes = resi;
                     bestCom = comi;
+//                    System.out.printf("%d di FIX atas%n", ++ctDebug);
                 }
             } else {
                 if(t+1<bestRes.time) {
@@ -174,21 +211,22 @@ public class Bot {
                 resi.boostcounter=5;
                 resi.speed = maxSpeedIfDamage[resi.damage];
                 xi = min(x+resi.speed,end); yi = y;
-                Result temp = prefix[yi][xi].minus(prefix[yi][x]);
-                // tambah temp ke resi (powerups).
-                resi = resi.add(temp);
-                // damage dari ctWall, ctDamage, boosting, boostcounter juga.
-                int curDamage = ctDamage[yi][xi] - ctDamage[yi][x];
-                int curWall = ctWall[yi][xi] - ctWall[yi][x];
-                if(curDamage>0) {
-                    resi.damage = min(5,resi.damage+curDamage);
-                    resi.speed = min(resi.speed,maxSpeedIfDamage[resi.damage]);
-                    if(curWall>0) {
-                        resi.speed = min(3,resi.speed);
-                    }
-                    resi.boosting=false;
-                    resi.boostcounter=0;
-                }
+                resi.xbonus = max(0,x+resi.speed-end);
+                xiyi = updateXiYi(x,xi,yi,resi);
+                xi = xiyi[0]; yi = xiyi[1];
+//                Result temp = prefix[yi][xi].minus(prefix[yi][x]);
+//                resi = resi.add(temp);
+//                int curDamage = ctDamage[yi][xi] - ctDamage[yi][x];
+//                int curWall = ctWall[yi][xi] - ctWall[yi][x];
+//                if(curDamage>0) {
+//                    resi.damage = min(5,resi.damage+curDamage);
+//                    resi.speed = min(resi.speed,maxSpeedIfDamage[resi.damage]);
+//                    if(curWall>0) {
+//                        resi.speed = min(3,resi.speed);
+//                    }
+//                    resi.boosting=false;
+//                    resi.boostcounter=0;
+//                }
                 if(com.equals("NONE")) {
                     comi = "USE_BOOST";
                 } else {
@@ -199,6 +237,7 @@ public class Bot {
                     if(resi.greaterThan(bestRes)) {
                         bestRes = resi;
                         bestCom = comi;
+//                        System.out.printf("%d di Boost%n", ++ctDebug);
                     }
                 } else {
                     if(t+1<bestRes.time) {
@@ -211,19 +250,22 @@ public class Bot {
                 resi = new Result(res);
                 resi.speed = min(nextSpeed(resi.speed), maxSpeedIfDamage[resi.damage]);
                 xi = min(x+resi.speed,end); yi=y;
-                Result temp = prefix[yi][xi].minus(prefix[yi][x]);
-                resi = resi.add(temp);
-                int curDamage = ctDamage[yi][xi]-ctDamage[yi][x];
-                int curWall = ctWall[yi][xi] - ctWall[yi][x];
-                if(curDamage>0) {
-                    if(curWall>0) {
-                        resi.speed = min(3,resi.speed);
-                    } else {
-                        resi.speed = max(3,prevSpeed(resi.speed));
-                    }
-                    resi.damage = min(5,resi.damage+curDamage);
-                    resi.speed = min(resi.speed,maxSpeedIfDamage[resi.damage]);
-                }
+                resi.xbonus = max(0,x+resi.speed-end);
+                xiyi = updateXiYi(x,xi,yi,resi);
+                xi = xiyi[0]; yi = xiyi[1];
+//                Result temp = prefix[yi][xi].minus(prefix[yi][x]);
+//                resi = resi.add(temp);
+//                int curDamage = ctDamage[yi][xi]-ctDamage[yi][x];
+//                int curWall = ctWall[yi][xi] - ctWall[yi][x];
+//                if(curDamage>0) {
+//                    if(curWall>0) {
+//                        resi.speed = min(3,resi.speed);
+//                    } else {
+//                        resi.speed = max(3,prevSpeed(resi.speed));
+//                    }
+//                    resi.damage = min(5,resi.damage+curDamage);
+//                    resi.speed = min(resi.speed,maxSpeedIfDamage[resi.damage]);
+//                }
                 if(com.equals("NONE")) {
                     comi = "ACCELERATE";
                 } else {
@@ -234,6 +276,7 @@ public class Bot {
                     if(resi.greaterThan(bestRes)) {
                         bestRes = resi;
                         bestCom = comi;
+//                        System.out.printf("%d di Accelerate%n", ++ctDebug);
                     }
                 } else {
                     if(t+1<bestRes.time) {
@@ -246,6 +289,7 @@ public class Bot {
                 resi = new Result(res);
                 --resi.ctLizard;
                 xi = min(x+resi.speed,end); yi = y;
+                resi.xbonus = max(0,x+resi.speed-end);
                 if(xi!=x && xi==x+resi.speed) {
                     int curDamage=0; int curWall=0;
                     Terrain curTerrain = gameState.lanes.get(yi)[xi].terrain;
@@ -291,6 +335,7 @@ public class Bot {
                     if(resi.greaterThan(bestRes)) {
                         bestRes = resi;
                         bestCom = comi;
+//                        System.out.printf("%d di Lizard%n", ++ctDebug);
                     }
                 } else {
                     if(t+1<bestRes.time) {
@@ -301,23 +346,26 @@ public class Bot {
 //            xi, yi, resi, prevSpeedi = NOTHING(x,y,res,prevSpeed);
             resi = new Result(res);
             xi = min(x+resi.speed,end); yi=y;
-            Result temp = prefix[yi][xi].minus(prefix[yi][x]);
-            resi = resi.add(temp);
-            int curDamage= ctDamage[yi][xi]-ctDamage[yi][x];
-            int curWall = ctWall[yi][xi]-ctWall[yi][x];
-            if(curDamage>0) {
-                if(curWall>0) {
-                    resi.speed = min(3,resi.speed);
-                } else {
-                    resi.speed = max(3,prevSpeed(resi.speed));
-                }
-                resi.damage = min(5,resi.damage+curDamage);
-                resi.speed = min(resi.speed, maxSpeedIfDamage[resi.damage]);
-                if(resi.boosting) {
-                    resi.boosting = false;
-                    resi.boostcounter = 0;
-                }
-            }
+            resi.xbonus = max(0,x+resi.speed-end);
+            xiyi = updateXiYi(x,xi,yi,resi);
+            xi = xiyi[0]; yi = xiyi[1];
+//            Result temp = prefix[yi][xi].minus(prefix[yi][x]);
+//            resi = resi.add(temp);
+//            int curDamage= ctDamage[yi][xi]-ctDamage[yi][x];
+//            int curWall = ctWall[yi][xi]-ctWall[yi][x];
+//            if(curDamage>0) {
+//                if(curWall>0) {
+//                    resi.speed = min(3,resi.speed);
+//                } else {
+//                    resi.speed = max(3,prevSpeed(resi.speed));
+//                }
+//                resi.damage = min(5,resi.damage+curDamage);
+//                resi.speed = min(resi.speed, maxSpeedIfDamage[resi.damage]);
+//                if(resi.boosting) {
+//                    resi.boosting = false;
+//                    resi.boostcounter = 0;
+//                }
+//            }
             if(com.equals("NONE")) {
                 comi = "NOTHING";
             } else {
@@ -328,6 +376,7 @@ public class Bot {
                 if(resi.greaterThan(bestRes)) {
                     bestRes = resi;
                     bestCom = comi;
+//                    System.out.printf("%d di NOTHING%n", ++ctDebug);
                 }
             } else {
                 if(t+1<bestRes.time) {
@@ -338,32 +387,35 @@ public class Bot {
 //                xi, yi, resi, prevSpeedi = TURN_LEFT(x,y,res,prevSpeed);
                 resi = new Result(res);
                 xi = min(x+resi.speed-1,end); yi = y-1;
-                if(x-1<0) {
-                    temp = prefix[yi][xi];
-                } else {
-                    temp = prefix[yi][xi].minus(prefix[yi][x-1]);
-                }
-                resi = resi.add(temp);
-                if(x-1<0) {
-                    curDamage = ctDamage[yi][xi];
-                    curWall = ctWall[yi][xi];
-                } else {
-                    curDamage = ctDamage[yi][xi]-ctDamage[yi][x-1];
-                    curWall = ctWall[yi][xi] - ctWall[yi][x-1];
-                }
-                if(curDamage>0) {
-                    if(curWall>0) {
-                        resi.speed = min(3,resi.speed);
-                    } else {
-                        resi.speed = max(3,prevSpeed(resi.speed));
-                    }
-                    resi.damage = min(5,resi.damage+curDamage);
-                    resi.speed = min(resi.speed, maxSpeedIfDamage[resi.damage]);
-                    if(resi.boosting) {
-                        resi.boosting = false;
-                        resi.boostcounter = 0;
-                    }
-                }
+                resi.xbonus = max(0,x+resi.speed-1-end);
+                xiyi = updateXiYi(x-1,xi,yi,resi);
+                xi = xiyi[0]; yi = xiyi[1];
+//                if(x-1<0) {
+//                    temp = prefix[yi][xi];
+//                } else {
+//                    temp = prefix[yi][xi].minus(prefix[yi][x-1]);
+//                }
+//                resi = resi.add(temp);
+//                if(x-1<0) {
+//                    curDamage = ctDamage[yi][xi];
+//                    curWall = ctWall[yi][xi];
+//                } else {
+//                    curDamage = ctDamage[yi][xi]-ctDamage[yi][x-1];
+//                    curWall = ctWall[yi][xi] - ctWall[yi][x-1];
+//                }
+//                if(curDamage>0) {
+//                    if(curWall>0) {
+//                        resi.speed = min(3,resi.speed);
+//                    } else {
+//                        resi.speed = max(3,prevSpeed(resi.speed));
+//                    }
+//                    resi.damage = min(5,resi.damage+curDamage);
+//                    resi.speed = min(resi.speed, maxSpeedIfDamage[resi.damage]);
+//                    if(resi.boosting) {
+//                        resi.boosting = false;
+//                        resi.boostcounter = 0;
+//                    }
+//                }
                 if(com.equals("NONE")) {
                     comi = "TURN_LEFT";
                 } else {
@@ -374,9 +426,12 @@ public class Bot {
                     if(resi.greaterThan(bestRes)) {
                         bestRes = resi;
                         bestCom = comi;
+//                        System.out.printf("%d di turn_left%n", ++ctDebug);
                     }
                 } else {
                     if(t+1<bestRes.time) {
+//                        System.out.printf("%d %d %d ke %d %d%n", t+1, x, y, xi, yi);
+//                        System.out.printf("%d time, %d speed, %d damage, %d ctBoost, %d boostcounter%n", resi.time, resi.speed, resi.damage, resi.ctBoost, resi.boostcounter);
                         dfs(t+1,xi,yi,resi, comi);
                     }
                 }
@@ -385,32 +440,35 @@ public class Bot {
 //                xi, yi, resi, prevSpeedi = TURN_RIGHT(x,y,res,prevSpeed);
                 resi = new Result(res);
                 xi = min(x+resi.speed-1,end); yi=y+1;
-                if(x-1<0) {
-                    temp = prefix[yi][xi];
-                } else {
-                    temp = prefix[yi][xi].minus(prefix[yi][x-1]);
-                }
-                resi = resi.add(temp);
-                if(x-1<0) {
-                    curDamage = ctDamage[yi][xi];
-                    curWall = ctWall[yi][xi];
-                } else {
-                    curDamage = ctDamage[yi][xi]-ctDamage[yi][x-1];
-                    curWall = ctWall[yi][xi] - ctWall[yi][x-1];
-                }
-                if(curDamage>0) {
-                    if(curWall>0) {
-                        resi.speed = min(3,resi.speed);
-                    } else {
-                        resi.speed = max(3,prevSpeed(resi.speed));
-                    }
-                    resi.damage = min(5,resi.damage+curDamage);
-                    resi.speed = min(resi.speed, maxSpeedIfDamage[resi.damage]);
-                    if(resi.boosting) {
-                        resi.boosting = false;
-                        resi.boostcounter = 0;
-                    }
-                }
+                resi.xbonus = max(0,x+resi.speed-1-end);
+                xiyi = updateXiYi(x-1,xi,yi,resi);
+                xi = xiyi[0]; yi = xiyi[1];
+//                if(x-1<0) {
+//                    temp = prefix[yi][xi];
+//                } else {
+//                    temp = prefix[yi][xi].minus(prefix[yi][x-1]);
+//                }
+//                resi = resi.add(temp);
+//                if(x-1<0) {
+//                    curDamage = ctDamage[yi][xi];
+//                    curWall = ctWall[yi][xi];
+//                } else {
+//                    curDamage = ctDamage[yi][xi]-ctDamage[yi][x-1];
+//                    curWall = ctWall[yi][xi] - ctWall[yi][x-1];
+//                }
+//                if(curDamage>0) {
+//                    if(curWall>0) {
+//                        resi.speed = min(3,resi.speed);
+//                    } else {
+//                        resi.speed = max(3,prevSpeed(resi.speed));
+//                    }
+//                    resi.damage = min(5,resi.damage+curDamage);
+//                    resi.speed = min(resi.speed, maxSpeedIfDamage[resi.damage]);
+//                    if(resi.boosting) {
+//                        resi.boosting = false;
+//                        resi.boostcounter = 0;
+//                    }
+//                }
                 if(com.equals("NONE")) {
                     comi = "TURN_RIGHT";
                 } else {
@@ -421,6 +479,7 @@ public class Bot {
                     if(resi.greaterThan(bestRes)) {
                         bestRes = resi;
                         bestCom = comi;
+//                        System.out.printf("%d di turn_right%n", ++ctDebug);
                     }
                 } else {
                     if(t+1<bestRes.time) {
@@ -433,23 +492,26 @@ public class Bot {
                 resi = new Result(res);
                 resi.speed = min(prevSpeed(resi.speed),maxSpeedIfDamage[resi.damage]);
                 xi = min(x+resi.speed,end); yi=y;
-                temp = prefix[yi][xi].minus(prefix[yi][x]);
-                resi = resi.add(temp);
-                curDamage= ctDamage[yi][xi]-ctDamage[yi][x];
-                curWall = ctWall[yi][xi]-ctWall[yi][x];
-                if(curDamage>0) {
-                    if(curWall>0) {
-                        resi.speed = min(3,resi.speed);
-                    } else {
-                        resi.speed = max(3,prevSpeed(resi.speed));
-                    }
-                    resi.damage = min(5,resi.damage+curDamage);
-                    resi.speed = min(resi.speed, maxSpeedIfDamage[resi.damage]);
-                    if(resi.boosting) {
-                        resi.boosting = false;
-                        resi.boostcounter = 0;
-                    }
-                }
+                resi.xbonus = max(0,x+resi.speed-end);
+                xiyi = updateXiYi(x, xi, yi, resi);
+                xi = xiyi[0]; yi = xiyi[1];
+//                temp = prefix[yi][xi].minus(prefix[yi][x]);
+//                resi = resi.add(temp);
+//                curDamage= ctDamage[yi][xi]-ctDamage[yi][x];
+//                curWall = ctWall[yi][xi]-ctWall[yi][x];
+//                if(curDamage>0) {
+//                    if(curWall>0) {
+//                        resi.speed = min(3,resi.speed);
+//                    } else {
+//                        resi.speed = max(3,prevSpeed(resi.speed));
+//                    }
+//                    resi.damage = min(5,resi.damage+curDamage);
+//                    resi.speed = min(resi.speed, maxSpeedIfDamage[resi.damage]);
+//                    if(resi.boosting) {
+//                        resi.boosting = false;
+//                        resi.boostcounter = 0;
+//                    }
+//                }
                 if(com.equals("NONE")) {
                     comi = "DECELERATE";
                 } else {
@@ -460,6 +522,7 @@ public class Bot {
                     if(resi.greaterThan(bestRes)) {
                         bestRes = resi;
                         bestCom = comi;
+//                        System.out.printf("%d di decelerate%n", ++ctDebug);
                     }
                 } else {
                     if(t+1<bestRes.time) {
@@ -482,6 +545,7 @@ public class Bot {
                     if(resi.greaterThan(bestRes)) {
                         bestRes = resi;
                         bestCom = comi;
+//                        System.out.printf("%d di FIX bawah%n", ++ctDebug);
                     }
                 } else {
                     if(t+1<bestRes.time) {

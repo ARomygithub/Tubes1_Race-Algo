@@ -27,11 +27,12 @@ public class Main {
         Scanner sc = new Scanner(System.in);
         Gson gson = new Gson();
         Random random = new Random(System.nanoTime());
+//        int roundNumber = 0;
 
         while(true) {
             try {
                 int roundNumber = sc.nextInt();
-
+//                ++roundNumber;
                 String statePath = String.format("./%s/%d/%s", ROUNDS_DIRECTORY, roundNumber, STATE_FILE_NAME);
 //                String statePath = String.format("target/%s/%d/%s", ROUNDS_DIRECTORY, roundNumber, STATE_FILE_NAME);
                 String state = new String(Files.readAllBytes(Paths.get(statePath)));
@@ -43,6 +44,7 @@ public class Main {
                 System.out.println(String.format("C;%d;%s", roundNumber, command));
 //                prevSpeed = gameState.player.speed;
 //                break;
+//                if(roundNumber==133) break;
             } catch (Exception e) {
                 e.printStackTrace();
             }

@@ -18,7 +18,7 @@ public class Result {
     public int ctOil;
     public boolean boosting;
     public int boostcounter;
-    public int ctDamage=0;
+    public int xbonus=0;
 
     public Result() {
         time=600;
@@ -119,15 +119,34 @@ public class Result {
         boostcounter=res.boostcounter;
     }
 
-    public Result add(Result res) {
-        return new Result(this.speed+res.speed,this.damage+res.damage,this.ctBoost+res.ctBoost,this.ctLizard+res.ctLizard,this.ctEmp+res.ctEmp,this.ctTweet+res.ctTweet,this.ctOil+res.ctOil,this.boostcounter+res.boostcounter);
+    public void add(Result res) {
+//        return new Result(this.speed+res.speed,this.damage+res.damage,this.ctBoost+res.ctBoost,this.ctLizard+res.ctLizard,this.ctEmp+res.ctEmp,this.ctTweet+res.ctTweet,this.ctOil+res.ctOil,this.boostcounter+res.boostcounter);
+//        time +=res.time;
+        speed +=res.speed;
+        damage +=res.damage;
+        ctBoost +=res.ctBoost;
+        ctLizard +=res.ctLizard;
+        ctEmp +=res.ctEmp;
+        ctTweet +=res.ctTweet;
+        ctOil +=res.ctOil;
+        boostcounter +=res.boostcounter;
     }
 
-    public Result minus(Result res) {
-        return new Result(this.speed-res.speed,this.damage-res.damage,this.ctBoost-res.ctBoost,this.ctLizard-res.ctLizard,this.ctEmp-res.ctEmp,this.ctTweet-res.ctTweet,this.ctOil-res.ctOil,this.boostcounter-res.boostcounter);
+    public void minus(Result res) {
+//        return new Result(this.speed-res.speed,this.damage-res.damage,this.ctBoost-res.ctBoost,this.ctLizard-res.ctLizard,this.ctEmp-res.ctEmp,this.ctTweet-res.ctTweet,this.ctOil-res.ctOil,this.boostcounter-res.boostcounter);
+//        time -=res.time;
+        speed -=res.speed;
+        damage -=res.damage;
+        ctBoost -=res.ctBoost;
+        ctLizard -=res.ctLizard;
+        ctEmp -=res.ctEmp;
+        ctTweet -=res.ctTweet;
+        ctOil -=res.ctOil;
+        boostcounter -=res.boostcounter;
     }
 
     public Boolean greaterThan(Result res) {
+        boolean ctBoostImportant = !(this.ctBoost>2 && res.ctBoost>2);
         if(this.time<res.time) {
             return true;
         } else if(this.time==res.time) {
@@ -139,21 +158,34 @@ public class Result {
                 if(this.damage<res.damage) {
                     return true;
                 } else if(this.damage==res.damage) {
+                    if(ctBoostImportant) {
+                        if(this.ctBoost>res.ctBoost) {
+                            return true;
+                        } else if(this.ctBoost<res.ctBoost) {
+                            return false;
+                        }
+                    }
+                    if(this.xbonus>res.xbonus) {
+                        return true;
+                    } else if(this.xbonus<res.xbonus) {
+                        return false;
+                    }
                     if(this.ctBoost>res.ctBoost) {
                         return true;
-                    } else if(this.ctBoost==res.ctBoost) {
-                        if((this.boostcounter>res.boostcounter)||(boostcounter==res.boostcounter && ctLizard>res.ctLizard)) {
+                    } else if(this.ctBoost<res.ctBoost) {
+                        return false;
+                    }
+                    if((this.boostcounter>res.boostcounter)||(boostcounter==res.boostcounter && ctLizard>res.ctLizard)) {
+                        return true;
+                    } else if(ctLizard==res.ctLizard) {
+                        if(ctEmp>res.ctEmp) {
                             return true;
-                        } else if(ctLizard==res.ctLizard) {
-                            if(ctEmp>res.ctEmp) {
+                        } else if(ctEmp==res.ctEmp) {
+                            if(ctTweet>res.ctTweet) {
                                 return true;
-                            } else if(ctEmp==res.ctEmp) {
-                                if(ctTweet>res.ctTweet) {
+                            } else if(ctTweet==res.ctTweet) {
+                                if(ctOil>res.ctOil) {
                                     return true;
-                                } else if(ctTweet==res.ctTweet) {
-                                    if(ctOil>res.ctOil) {
-                                        return true;
-                                    }
                                 }
                             }
                         }
