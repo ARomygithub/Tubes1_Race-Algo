@@ -16,6 +16,7 @@ public class Main {
     private static final String ROUNDS_DIRECTORY = "rounds";
     private static final String STATE_FILE_NAME = "state.json";
 //    public static int prevSpeed=-1;
+    public int[] myTruckPos= new int[] {-1,-1};
 
     /**
      * Read the current state, feed it to the bot, get the output and print it to stdout

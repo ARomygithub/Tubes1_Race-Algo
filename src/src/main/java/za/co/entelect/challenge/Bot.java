@@ -27,6 +27,7 @@ public class Bot {
     private int[][] ctDamage;
     private int start, end;
     private int ctLane;
+    private int[][] truck = new int[][] {{-1,-1}, {-1,-1}};
 //    private int ctDebug=0;
 
     public Bot(Random random, GameState gameState) {
@@ -35,7 +36,18 @@ public class Bot {
 //        this.myCar = gameState.player;
 //        this.opponent = gameState.opponent;
         this.ctLane = gameState.lanes.size();
-
+        int blockLength = gameState.lanes.get(0).length;
+        for(int i=0;i<ctLane;i++) {
+            for(int j=0;j<blockLength;j++) {
+                if(gameState.lanes.get(i)[j].isOccupiedByCyberTruck) {
+                    if (truck[0][0] ==-1) {
+                        truck[0][0]=j; truck[0][1]=i;
+                    } else if(truck[1][0]==-1) {
+                        truck[1][0]=j;truck[1][1]=i;
+                    }
+                }
+            }
+        }
         directionList.add(-1);
         directionList.add(1);
     }
@@ -92,10 +104,11 @@ public class Bot {
                 }
             }
         }
-
-        dfs(0,start, curLane, now, "NONE");
+//        System.out.printf("%d truck[0][0] %d truck[0][1] %d truck[1][0] %d truck[1][1]%n", truck[0][0], truck[0][1], truck[1][0], truck[1][1]);
+        dfs(0,start, curLane, now, "NONE", truck);
 
 //        System.out.printf("%d time, %d speed, %d damage, %d ctBoost, %d boostcounter%n", bestRes.time, bestRes.speed, bestRes.damage, bestRes.ctBoost, bestRes.boostcounter);
+//        System.out.printf("%d truck[0][0] %d truck[0][1] %d truck[1][0] %d truck[1][1]%n", truck[0][0], truck[0][1], truck[1][0], truck[1][1]);
         return bestCom;
     }
 
@@ -137,9 +150,21 @@ public class Bot {
         }
     }
 
-    private int[] updateXiYi(int x, int xi, int yi, Result resi) {
+    private int[] updateXiYi(int x, int xi, int yi, Result resi, int[][] trucki) {
         // tambah temp ke resi (powerups).
         // damage dari ctWall, ctDamage, boosting, boostcounter juga.
+        boolean hitTruck=false;
+        if(yi==trucki[0][1] && x<trucki[0][0] && trucki[0][0]<=xi) {
+//            System.out.printf("Tes trucki[0] di update%n");
+//            System.out.printf("%d x %d xi %d yi%n", x, xi, yi);
+            hitTruck = true;
+            xi = trucki[0][0]-1;
+            trucki[0][0] = -1; trucki[0][1] = -1;
+        } else if(yi==trucki[1][1] && x<trucki[1][0] && trucki[1][0]<=xi) {
+            hitTruck = true;
+            xi = trucki[1][0] -1;
+            trucki[1][0] = -1; trucki[1][1] = -1;
+        }
         Result temp = new Result(prefix[yi][xi]);
         if(x>=0) {
             temp.minus(prefix[yi][x]);
@@ -150,6 +175,18 @@ public class Bot {
         if(x>=0) {
             curDamage -= ctDamage[yi][x];
             curWall -= ctWall[yi][x];
+        }
+        if(hitTruck) {
+            curDamage +=2;
+            curWall +=1;
+            resi.xbonus = 0;
+            if(xi==x) {
+                curDamage += ctDamage[yi][x]-ctDamage[yi][x-1];
+                curWall += ctWall[yi][x]-ctWall[yi][x-1];
+                temp.add(prefix[yi][x]);
+                temp.minus(prefix[yi][x-1]);
+                resi.add(temp);
+            }
         }
         if(curDamage>0) {
             if(curWall>0) {
@@ -167,7 +204,7 @@ public class Bot {
         return new int[] {xi,yi};
     }
 
-    private void dfs(int t, int x, int y, Result res, String com) {
+    private void dfs(int t, int x, int y, Result res, String com, int[][] cybertruck) {
         if(res.boosting) {
             --res.boostcounter;
             if(res.boostcounter==0){
@@ -179,11 +216,14 @@ public class Bot {
         int[] xiyi;
         Result resi;
         String comi;
+        int[][] trucki;
         if(res.damage>=5) {
 //            xi, yi, resi, prevSpeedi  = FIX(x,y,res,prevSpeed);
             xi = x; yi = y;
             resi = new Result(res);
             resi.damage = max(0,resi.damage-2);
+            trucki = new int[2][2];
+            trucki[0][0] = cybertruck[0][0]; trucki[0][1]=cybertruck[0][1]; trucki[1][0]=cybertruck[1][0]; trucki[1][1]=cybertruck[1][1];
 
             if(com.equals("NONE")) {
                 comi = "FIX";
@@ -199,7 +239,7 @@ public class Bot {
                 }
             } else {
                 if(t+1<bestRes.time) {
-                    dfs(t+1,xi,yi,resi, comi);
+                    dfs(t+1,xi,yi,resi, comi, trucki);
                 }
             }
         } else {
@@ -210,9 +250,11 @@ public class Bot {
                 resi.boosting=true;
                 resi.boostcounter=5;
                 resi.speed = maxSpeedIfDamage[resi.damage];
+                trucki = new int[2][2];
+                trucki[0][0] = cybertruck[0][0]; trucki[0][1]=cybertruck[0][1]; trucki[1][0]=cybertruck[1][0]; trucki[1][1]=cybertruck[1][1];
                 xi = min(x+resi.speed,end); yi = y;
                 resi.xbonus = max(0,x+resi.speed-end);
-                xiyi = updateXiYi(x,xi,yi,resi);
+                xiyi = updateXiYi(x,xi,yi,resi,trucki);
                 xi = xiyi[0]; yi = xiyi[1];
 //                Result temp = prefix[yi][xi].minus(prefix[yi][x]);
 //                resi = resi.add(temp);
@@ -241,7 +283,7 @@ public class Bot {
                     }
                 } else {
                     if(t+1<bestRes.time) {
-                        dfs(t+1,xi,yi,resi, comi);
+                        dfs(t+1,xi,yi,resi, comi, trucki);
                     }
                 }
             }
@@ -249,9 +291,13 @@ public class Bot {
 //            xi, yi, resi, prevSpeedi = ACCELERATE(x,y,res,prevSpeed);
                 resi = new Result(res);
                 resi.speed = min(nextSpeed(resi.speed), maxSpeedIfDamage[resi.damage]);
+                trucki = new int[2][2];
+                trucki[0][0] = cybertruck[0][0]; trucki[0][1]=cybertruck[0][1]; trucki[1][0]=cybertruck[1][0]; trucki[1][1]=cybertruck[1][1];
                 xi = min(x+resi.speed,end); yi=y;
                 resi.xbonus = max(0,x+resi.speed-end);
-                xiyi = updateXiYi(x,xi,yi,resi);
+                xiyi = updateXiYi(x,xi,yi,resi,trucki);
+//                System.out.printf("%d x-1 %d xi %d yi%n", x-1, xi, yi);
+//                System.out.printf("%d trucki[0][0] %d truck[0][1] %d truck[1][0] %d truck[1][1]%n", trucki[0][0], trucki[0][1], trucki[1][0], trucki[1][1]);
                 xi = xiyi[0]; yi = xiyi[1];
 //                Result temp = prefix[yi][xi].minus(prefix[yi][x]);
 //                resi = resi.add(temp);
@@ -280,7 +326,7 @@ public class Bot {
                     }
                 } else {
                     if(t+1<bestRes.time) {
-                        dfs(t+1,xi,yi,resi, comi);
+                        dfs(t+1,xi,yi,resi, comi, trucki);
                     }
                 }
             }
@@ -288,10 +334,24 @@ public class Bot {
 //                xi, yi, resi, prevSpeedi = USE_LIZARD(x,y,res,prevSpeed);
                 resi = new Result(res);
                 --resi.ctLizard;
+                trucki = new int[2][2];
+                trucki[0][0] = cybertruck[0][0]; trucki[0][1]=cybertruck[0][1]; trucki[1][0]=cybertruck[1][0]; trucki[1][1]=cybertruck[1][1];
                 xi = min(x+resi.speed,end); yi = y;
                 resi.xbonus = max(0,x+resi.speed-end);
                 if(xi!=x && xi==x+resi.speed) {
                     int curDamage=0; int curWall=0;
+                    if(yi==trucki[0][1] && xi==trucki[0][0]) {
+                        --xi;
+                        ++curWall;
+                        curDamage +=2;
+                        trucki[0][0] = -1; trucki[0][1] = -1;
+                    }
+                    if(yi==trucki[1][1] && xi==trucki[1][0]) {
+                        --xi;
+                        ++curWall;
+                        curDamage +=2;
+                        trucki[1][0] = -1; trucki[1][1] = -1;
+                    }
                     Terrain curTerrain = gameState.lanes.get(yi)[xi].terrain;
                     if(curTerrain==Terrain.MUD) {
                         ++curDamage;
@@ -339,15 +399,17 @@ public class Bot {
                     }
                 } else {
                     if(t+1<bestRes.time) {
-                        dfs(t+1,xi,yi,resi, comi);
+                        dfs(t+1,xi,yi,resi, comi, trucki);
                     }
                 }
             }
 //            xi, yi, resi, prevSpeedi = NOTHING(x,y,res,prevSpeed);
             resi = new Result(res);
+            trucki = new int[2][2];
+            trucki[0][0] = cybertruck[0][0]; trucki[0][1]=cybertruck[0][1]; trucki[1][0]=cybertruck[1][0]; trucki[1][1]=cybertruck[1][1];
             xi = min(x+resi.speed,end); yi=y;
             resi.xbonus = max(0,x+resi.speed-end);
-            xiyi = updateXiYi(x,xi,yi,resi);
+            xiyi = updateXiYi(x,xi,yi,resi,trucki);
             xi = xiyi[0]; yi = xiyi[1];
 //            Result temp = prefix[yi][xi].minus(prefix[yi][x]);
 //            resi = resi.add(temp);
@@ -380,15 +442,19 @@ public class Bot {
                 }
             } else {
                 if(t+1<bestRes.time) {
-                    dfs(t+1,xi,yi,resi, comi);
+                    dfs(t+1,xi,yi,resi, comi, trucki);
                 }
             }
             if(y>0) {
 //                xi, yi, resi, prevSpeedi = TURN_LEFT(x,y,res,prevSpeed);
                 resi = new Result(res);
+                trucki = new int[2][2];
+                trucki[0][0] = cybertruck[0][0]; trucki[0][1]=cybertruck[0][1]; trucki[1][0]=cybertruck[1][0]; trucki[1][1]=cybertruck[1][1];
                 xi = min(x+resi.speed-1,end); yi = y-1;
                 resi.xbonus = max(0,x+resi.speed-1-end);
-                xiyi = updateXiYi(x-1,xi,yi,resi);
+                xiyi = updateXiYi(x-1,xi,yi,resi,trucki);
+//                System.out.printf("%d x-1 %d xi %d yi%n", x-1, xi, yi);
+//                System.out.printf("%d trucki[0][0] %d truck[0][1] %d truck[1][0] %d truck[1][1]%n", trucki[0][0], trucki[0][1], trucki[1][0], trucki[1][1]);
                 xi = xiyi[0]; yi = xiyi[1];
 //                if(x-1<0) {
 //                    temp = prefix[yi][xi];
@@ -432,16 +498,18 @@ public class Bot {
                     if(t+1<bestRes.time) {
 //                        System.out.printf("%d %d %d ke %d %d%n", t+1, x, y, xi, yi);
 //                        System.out.printf("%d time, %d speed, %d damage, %d ctBoost, %d boostcounter%n", resi.time, resi.speed, resi.damage, resi.ctBoost, resi.boostcounter);
-                        dfs(t+1,xi,yi,resi, comi);
+                        dfs(t+1,xi,yi,resi, comi, trucki);
                     }
                 }
             }
             if(y+1<ctLane) {
 //                xi, yi, resi, prevSpeedi = TURN_RIGHT(x,y,res,prevSpeed);
                 resi = new Result(res);
+                trucki = new int[2][2];
+                trucki[0][0] = cybertruck[0][0]; trucki[0][1]=cybertruck[0][1]; trucki[1][0]=cybertruck[1][0]; trucki[1][1]=cybertruck[1][1];
                 xi = min(x+resi.speed-1,end); yi=y+1;
                 resi.xbonus = max(0,x+resi.speed-1-end);
-                xiyi = updateXiYi(x-1,xi,yi,resi);
+                xiyi = updateXiYi(x-1,xi,yi,resi,trucki);
                 xi = xiyi[0]; yi = xiyi[1];
 //                if(x-1<0) {
 //                    temp = prefix[yi][xi];
@@ -483,7 +551,7 @@ public class Bot {
                     }
                 } else {
                     if(t+1<bestRes.time) {
-                        dfs(t+1,xi,yi,resi, comi);
+                        dfs(t+1,xi,yi,resi, comi, trucki);
                     }
                 }
             }
@@ -491,9 +559,11 @@ public class Bot {
 //                xi, yi, resi, prevSpeedi = DECELERATE(x,y,res,prevSpeed);
                 resi = new Result(res);
                 resi.speed = min(prevSpeed(resi.speed),maxSpeedIfDamage[resi.damage]);
+                trucki = new int[2][2];
+                trucki[0][0] = cybertruck[0][0]; trucki[0][1]=cybertruck[0][1]; trucki[1][0]=cybertruck[1][0]; trucki[1][1]=cybertruck[1][1];
                 xi = min(x+resi.speed,end); yi=y;
                 resi.xbonus = max(0,x+resi.speed-end);
-                xiyi = updateXiYi(x, xi, yi, resi);
+                xiyi = updateXiYi(x, xi, yi, resi, trucki);
                 xi = xiyi[0]; yi = xiyi[1];
 //                temp = prefix[yi][xi].minus(prefix[yi][x]);
 //                resi = resi.add(temp);
@@ -526,7 +596,7 @@ public class Bot {
                     }
                 } else {
                     if(t+1<bestRes.time) {
-                        dfs(t+1,xi,yi,resi, comi);
+                        dfs(t+1,xi,yi,resi, comi, trucki);
                     }
                 }
             }
@@ -535,6 +605,8 @@ public class Bot {
                 resi = new Result(res);
                 xi =x; yi=y;
                 resi.damage = max(0,resi.damage-2);
+                trucki = new int[2][2];
+                trucki[0][0] = cybertruck[0][0]; trucki[0][1]=cybertruck[0][1]; trucki[1][0]=cybertruck[1][0]; trucki[1][1]=cybertruck[1][1];
                 if(com.equals("NONE")) {
                     comi = "FIX";
                 } else {
@@ -549,7 +621,7 @@ public class Bot {
                     }
                 } else {
                     if(t+1<bestRes.time) {
-                        dfs(t+1,xi,yi,resi, comi);
+                        dfs(t+1,xi,yi,resi, comi, trucki);
                     }
                 }
             }
