@@ -19,6 +19,8 @@ public class Result {
     public boolean boosting;
     public int boostcounter;
     public int xbonus=0;
+    public int xr=0; //xr,yr hanya diset terakhir untuk command
+    public int yr=0;
 
     public Result() {
         time=600;
@@ -194,5 +196,23 @@ public class Result {
             }
         }
         return false;
+    }
+
+    public int greaterThanV1(Result res) {
+        return this.damage-res.damage;
+    }
+
+    public int greaterThanV2(Result res) {
+        return res.speed-this.speed;
+    }
+
+    public int greaterThanV3(Result res) {
+        if(this.damage!=res.damage) {
+            return this.damage-res.damage;
+        }
+        if(this.speed!=res.speed) {
+            return res.speed-this.speed;
+        }
+        return res.xr-this.xr;
     }
 }

@@ -1,6 +1,6 @@
 package za.co.entelect.challenge.command;
 
-public class EmpCommand implements Command {
+public class EmpCommand extends Command {
 
     @Override
     public String render() {
