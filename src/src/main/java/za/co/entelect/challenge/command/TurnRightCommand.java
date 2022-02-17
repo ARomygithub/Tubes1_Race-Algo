@@ -19,7 +19,7 @@ public class TurnRightCommand extends Command {
 
     public boolean run(Result res, int x, int y, int[][] truck, int end, Result[][] prefix, int[][]ctDamage, int[][] ctWall) {
         // cek seleksi khusus command
-        if(y+1<ctLane) {
+        if(y+1<ctLane && res.speed>0) {
             int[] xiyi;
             int[][] trucki;
             resi = new Result(res);

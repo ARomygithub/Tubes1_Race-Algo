@@ -17,7 +17,7 @@ public class TurnLeftCommand extends Command {
     }
 
     public boolean run(Result res, int x, int y, int[][] truck, int end, Result[][] prefix, int[][]ctDamage, int[][] ctWall) {
-        if(y>0) {
+        if(y>0 && res.speed>0) {
             int[] xiyi;
             int[][] trucki;
             resi = new Result(res);
