@@ -2,7 +2,7 @@ package za.co.entelect.challenge.command;
 
 import za.co.entelect.challenge.enums.Direction;
 
-public class ChangeLaneCommand implements Command {
+public class ChangeLaneCommand extends Command {
 
     private Direction direction;
 

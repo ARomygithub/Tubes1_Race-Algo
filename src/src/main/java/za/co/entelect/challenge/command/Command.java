@@ -1,5 +1,8 @@
 package za.co.entelect.challenge.command;
 
-public interface Command {
-    String render();
+import za.co.entelect.challenge.Result;
+
+public abstract class Command {
+    public Result resi;
+    public abstract String render();
 }

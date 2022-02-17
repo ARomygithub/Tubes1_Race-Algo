@@ -15,6 +15,8 @@ public class Main {
 
     private static final String ROUNDS_DIRECTORY = "rounds";
     private static final String STATE_FILE_NAME = "state.json";
+//    public static int prevSpeed=-1;
+    public int[] myTruckPos= new int[] {-1,-1};
 
     /**
      * Read the current state, feed it to the bot, get the output and print it to stdout
@@ -26,11 +28,12 @@ public class Main {
         Scanner sc = new Scanner(System.in);
         Gson gson = new Gson();
         Random random = new Random(System.nanoTime());
+//        int roundNumber = 0;
 
         while(true) {
             try {
                 int roundNumber = sc.nextInt();
-
+//                ++roundNumber;
                 String statePath = String.format("./%s/%d/%s", ROUNDS_DIRECTORY, roundNumber, STATE_FILE_NAME);
 //                String statePath = String.format("target/%s/%d/%s", ROUNDS_DIRECTORY, roundNumber, STATE_FILE_NAME);
                 String state = new String(Files.readAllBytes(Paths.get(statePath)));
@@ -38,9 +41,11 @@ public class Main {
                 GameState gameState = gson.fromJson(state, GameState.class);
 //                printPowerUps(gameState);
 //                printWorldMap(gameState);
-                Command command = new Bot(random, gameState).run();
-                System.out.println(String.format("C;%d;%s", roundNumber, command.render()));
+                String command = new Bot(random, gameState).run();
+                System.out.println(String.format("C;%d;%s", roundNumber, command));
+//                prevSpeed = gameState.player.speed;
 //                break;
+//                if(roundNumber==133) break;
             } catch (Exception e) {
                 e.printStackTrace();
             }

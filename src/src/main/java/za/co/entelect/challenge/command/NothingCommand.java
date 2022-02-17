@@ -4,26 +4,21 @@ import za.co.entelect.challenge.Result;
 
 import static java.lang.Math.max;
 import static java.lang.Math.min;
-import static za.co.entelect.challenge.Util.*;
+import static za.co.entelect.challenge.Util.updateXiYi;
 
-public class AccelerateCommand extends Command {
+public class NothingCommand extends Command {
     public int xi=-1, yi=-1;
 
     @Override
     public String render() {
-        return String.format("ACCELERATE");
-    }
-
-    public AccelerateCommand() {
-        resi = new Result();
+        return "NOTHING";
     }
 
     public boolean run(Result res, int x, int y, int[][] truck, int end, Result[][] prefix, int[][]ctDamage, int[][] ctWall) {
-        if(!res.boosting) { // cek seleksi khusus command accelerate
-            int[] xiyi;
-            int[][] trucki;
+        int[] xiyi;
+        int[][] trucki;
+        if(res.speed>0) {
             resi = new Result(res);
-            resi.speed = min(nextSpeed(resi.speed), maxSpeedIfDamage[resi.damage]);
             trucki = new int[2][2];
             trucki[0][0] = truck[0][0]; trucki[0][1]=truck[0][1]; trucki[1][0]=truck[1][0]; trucki[1][1]=truck[1][1];
             xi = min(x+resi.speed,end); yi=y;
