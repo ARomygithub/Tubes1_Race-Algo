@@ -38,7 +38,7 @@ public class TweetCommand extends Command{
                     }
                 }
                 if(flagTruck) {
-                    bot.bestCom = "USE_TWEET " + (myY+1) + " " + (myX);
+                    bot.bestCom = "USE_TWEET " + (myY+1) + " " + (myX-1);
                 } else {
                     int tweetX=otherX+2*otherSpeed-2;
                     if(otherSpeed==3) {
