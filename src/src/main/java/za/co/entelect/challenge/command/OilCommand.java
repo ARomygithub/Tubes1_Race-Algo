@@ -1,6 +1,6 @@
 package za.co.entelect.challenge.command;
 
-public class OilCommand extends Command {
+public class OilCommand implements Command {
 
     @Override
     public String render() {
