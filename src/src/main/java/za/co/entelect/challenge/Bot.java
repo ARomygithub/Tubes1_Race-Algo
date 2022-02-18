@@ -25,7 +25,7 @@ public class Bot {
     private int[][] ctWall;
     private int[][] ctDamage;
     private int[] ctBad;
-    private int start, end, best;
+    private int start, end, best, ctBest;
     private boolean useLiz;
     public static int ctLane;
     private int[][] truck = new int[][] {{-1,-1}, {-1,-1}};
@@ -178,9 +178,10 @@ public class Bot {
             }
         }
 
-        best = ctBad[0];
+        ctBest = ctBad[0];
+        best = 0;
         for(int i=1;i<ctLane;i++){
-            if (best > ctBad[i]){
+            if (ctBest > ctBad[i]){
                 best = i;
             }
         }
