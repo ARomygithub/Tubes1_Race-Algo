@@ -168,22 +168,38 @@ public class Bot {
     }
 
     private void attackStrategy(Result cur) {
+        // mengubah bestCom ke command attack sesuai strategi
         int myX = gameState.player.position.block;
         int myY = gameState.player.position.lane-1;
         int otherX = gameState.opponent.position.block;
         int otherY = gameState.opponent.position.lane-1;
         int otherSpeed = gameState.opponent.speed;
-        if(myX>otherX) {
+        if(myX>otherX) { // kasus Car di depan lawan
+            // ketiga commmand attack memiliki metode run yang mengubah bestCom
+            // pada bot menjadi command attack bila suatu kondisi terpenuhi
+
+            // oil digunakan bila lawan berada di lane yang sama dan perbedaan jarak
+            // kurang dari kecepatannya. Kecepatan normal lawan di lane yang sama akan
+            // membuatnya hit_oil ronde berikutnya
             OilCommand oc = new OilCommand();
             oc.run(cur,myX,myY,otherX,otherY,otherSpeed,this);
+            // tweet digunakan bila kondisi oil tadi tidak memenuhi
+            // tweet ditempatkan di dekat Car bila area sekitar ramai rintangan untuk
+            // mempersulit musuh
+            // Selain itu, tweet ditempatkan di sekitar otherX+2*otherSpeed sebagai
+            // rintangan ronde berikutnya
             TweetCommand tc = new TweetCommand();
             tc.run(cur,myX,myY,otherX,otherY,otherSpeed,this,gameState.lanes,ctDamage);
             if(bestCom.equals("NOTHING") || bestCom.equals("ACCELERATE")) {
+                // Memanfaatkan oil agar terpakai maksimal
                 if(cur.ctOil*15+myX>=track_length) {
                     bestCom = "USE_OIL";
                 }
             }
-        } else if(myX<otherX){
+        } else if(myX<otherX){ // Kasus Car di belakang lawan
+            // Emp digunakan saat dapat membalap lawan
+            // saat emp > 2 dan kecepatan lawan 15 agar kembali ke 3
+            // saat emp berlimpah sehingga bisa jadi tidak habis di akhir game
             EmpCommand ec = new EmpCommand();
             ec.run(cur,myX,myY,otherX,otherY,otherSpeed,this);
         }

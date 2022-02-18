@@ -19,6 +19,7 @@ public class AccelerateCommand extends Command {
     }
 
     public boolean run(Result res, int x, int y, int[][] truck, int end, Result[][] prefix, int[][]ctDamage, int[][] ctWall) {
+        // Bila selanjutnya masih boosting, jangan gunakan accelerate
         if(!res.boosting) { // cek seleksi khusus command accelerate
             int[] xiyi;
             int[][] trucki;

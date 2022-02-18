@@ -17,6 +17,7 @@ public class NothingCommand extends Command {
     public boolean run(Result res, int x, int y, int[][] truck, int end, Result[][] prefix, int[][]ctDamage, int[][] ctWall) {
         int[] xiyi;
         int[][] trucki;
+        // bila speed=0, jangan Nothing
         if(res.speed>0) {
             resi = new Result(res);
             trucki = new int[2][2];

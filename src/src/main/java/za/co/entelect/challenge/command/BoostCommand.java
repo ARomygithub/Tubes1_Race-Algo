@@ -16,6 +16,7 @@ public class BoostCommand extends Command {
     }
 
     public boolean run(Result res, int x, int y, int[][] truck, int end, Result[][] prefix, int[][]ctDamage, int[][] ctWall) {
+        // cek stok powerups. Bila speed sudah max jangan gunakan boost
         if(res.ctBoost>0 && res.speed!=maxSpeedIfDamage[res.damage]) {
             int[] xiyi;
             int[][] trucki;

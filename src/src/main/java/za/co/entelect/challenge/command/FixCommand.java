@@ -15,6 +15,7 @@ public class FixCommand extends Command {
     public boolean run(Result res, int x, int y, int[][] truck, int end, Result[][] prefix, int[][]ctDamage, int[][] ctWall) {
         int[] xiyi;
         int[][] trucki;
+        // Bila damage=0, Fix tidak dipertimbangkan
         if(res.damage>0) {
             resi = new Result(res);
             xi =x; yi=y;

@@ -17,6 +17,7 @@ public class LizardCommand extends Command {
 
     public boolean run(Result res, int x, int y, int[][] truck, int end, Result[][] prefix, int[][]ctDamage, int[][] ctWall, GameState gameState) {
         int[][] trucki;
+        // cek stok Lizard
         if(res.ctLizard>0) {
             resi = new Result(res);
             --resi.ctLizard;

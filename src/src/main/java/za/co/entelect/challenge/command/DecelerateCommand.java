@@ -18,12 +18,16 @@ public class DecelerateCommand extends Command {
     public boolean run(Result res, int x, int y, int[][] truck, int end, Result[][] prefix, int[][]ctDamage, int[][] ctWall) {
         int[] xiyi;
         int[][] trucki;
+        // menghindari Car berhenti
         if(res.speed>3) {
             resi = new Result(res);
             resi.speed = min(prevSpeed(resi.speed),maxSpeedIfDamage[resi.damage]);
             trucki = new int[2][2];
             trucki[0][0] = truck[0][0]; trucki[0][1]=truck[0][1]; trucki[1][0]=truck[1][0]; trucki[1][1]=truck[1][1];
             xi = min(x+resi.speed,end); yi=y;
+            // Pada greedy by damage decelerate kandidat kuat, namun
+            // sering merugikan. decelerate layak dipertimbangkan bila lane
+            // sebelah bebas dari rintangan
             boolean nextLaneBetter = false;
             if(yi+1<ctLane) {
                 if(ctDamage[yi+1][end]-ctDamage[yi+1][xi-1]==0) {
