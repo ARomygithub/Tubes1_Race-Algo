@@ -19,6 +19,11 @@ c. NodeJS: https://nodejs.org/en/download/
 
 ## How To Run
 
+1. Download latest release starter pack.zip dari tautan berikut
+https://github.com/EntelectChallenge/2020-Overdrive/releases/tag/2020.3.4
+2. ubah isi dari starter-pack/starter-bots/java dengan isi dari folder src repository ini
+3. jalankan run.bat
+
 ## Author
 
 - Ahmad Romy Zahran	13520009  
