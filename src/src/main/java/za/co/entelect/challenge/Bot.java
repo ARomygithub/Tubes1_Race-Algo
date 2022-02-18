@@ -34,7 +34,7 @@ public class Bot {
         this.gameState = gameState;
 //        this.myCar = gameState.player;
 //        this.opponent = gameState.opponent;
-        this.ctLane = gameState.lanes.size();
+        ctLane = gameState.lanes.size();
         int blockLength = gameState.lanes.get(0).length;
         for(int i=0;i<ctLane;i++) {
             for(int j=0;j<blockLength;j++) {
@@ -52,57 +52,12 @@ public class Bot {
     }
 
     public String run() {
-//        List<Object> blocks = getBlocksInFront(myCar.position.lane, myCar.position.block);
-//        if (myCar.damage >= 5) {
-//            return new FixCommand();
-//        }
-//        if (blocks.contains(Terrain.MUD)) {
-//            int i = random.nextInt(directionList.size());
-//            return new ChangeLaneCommand(directionList.get(i));
-//        }
-        prefix = new Result[gameState.lanes.size()][gameState.lanes.get(0).length];
-        for(int i=0;i<prefix.length;i++) {
-            prefix[i][0] = new Result(gameState.lanes.get(i)[0].terrain);
-            for(int j=1;j<prefix[0].length;j++) {
-//                prefix[i][j] = prefix[i][j-1].add(new Result(gameState.lanes.get(i)[j].terrain));
-                prefix[i][j] = new Result(prefix[i][j-1]);
-                prefix[i][j].add(new Result(gameState.lanes.get(i)[j].terrain));
-            }
-        }
         this.start = gameState.player.position.block-gameState.lanes.get(0)[0].position.block;
         this.end = gameState.lanes.get(0)[gameState.lanes.get(0).length-1].position.block - gameState.lanes.get(0)[0].position.block;
         int curLane = gameState.player.position.lane -1;
+        precompute();
         Result now = new Result(gameState);
 
-        ctWall = new int[ctLane][end+1];
-        ctDamage = new int[ctLane][end+1];
-        for(int i=0;i<ctLane;i++) {
-            if(gameState.lanes.get(i)[0].terrain==Terrain.WALL) {
-                ctWall[i][0] = 1;
-                ctDamage[i][0] = 2;
-            } else if(gameState.lanes.get(i)[0].terrain==Terrain.MUD) {
-                ctWall[i][0] = 0;
-                ctDamage[i][0] = 1;
-            } else if(gameState.lanes.get(i)[0].terrain==Terrain.OIL_SPILL) {
-                ctWall[i][0] = 0;
-                ctDamage[i][0] = 1;
-            } else {
-                ctWall[i][0] = 0;
-                ctDamage[i][0] = 0;
-            }
-            for(int j=1;j<=end;j++) {
-                if(gameState.lanes.get(i)[j].terrain==Terrain.WALL) {
-                    ctWall[i][j] = ctWall[i][j-1]+1;
-                    ctDamage[i][j] = ctDamage[i][j-1]+2;
-                } else if(gameState.lanes.get(i)[j].terrain==Terrain.MUD || gameState.lanes.get(i)[j].terrain==Terrain.OIL_SPILL) {
-                    ctWall[i][j] = ctWall[i][j-1];
-                    ctDamage[i][j] = ctDamage[i][j-1]+1;
-                } else {
-                    ctWall[i][j] = ctWall[i][j-1];
-                    ctDamage[i][j] = ctDamage[i][j-1];
-                }
-            }
-        }
 //        System.out.printf("%d truck[0][0] %d truck[0][1] %d truck[1][0] %d truck[1][1]%n", truck[0][0], truck[0][1], truck[1][0], truck[1][1]);
 //        System.out.printf("%d time, %d speed, %d damage, %d ctBoost, %d boostcounter%n", bestRes.time, bestRes.speed, bestRes.damage, bestRes.ctBoost, bestRes.boostcounter);
 //        System.out.printf("%d truck[0][0] %d truck[0][1] %d truck[1][0] %d truck[1][1]%n", truck[0][0], truck[0][1], truck[1][0], truck[1][1]);
@@ -147,7 +102,7 @@ public class Bot {
         Collections.sort(commands,comp);
 //        return commands.get(0).render();
         bestCom = commands.get(0).render();
-//        gapake attack dulu
+//        memakai attack dulu
         boolean attack = bestCom.equals("NOTHING");
         if(bestCom.equals("ACCELERATE")) {
             if(min(nextSpeed(now.speed),maxSpeedIfDamage[now.damage])==now.speed) attack=true;
@@ -156,6 +111,48 @@ public class Bot {
             attackStrategy(now);
         }
         return bestCom;
+    }
+
+    private void precompute() {
+        prefix = new Result[gameState.lanes.size()][gameState.lanes.get(0).length];
+        for(int i=0;i<prefix.length;i++) {
+            prefix[i][0] = new Result(gameState.lanes.get(i)[0].terrain);
+            for(int j=1;j<prefix[0].length;j++) {
+//                prefix[i][j] = prefix[i][j-1].add(new Result(gameState.lanes.get(i)[j].terrain));
+                prefix[i][j] = new Result(prefix[i][j-1]);
+                prefix[i][j].add(new Result(gameState.lanes.get(i)[j].terrain));
+            }
+        }
+
+        ctWall = new int[ctLane][end+1];
+        ctDamage = new int[ctLane][end+1];
+        for(int i=0;i<ctLane;i++) {
+            if(gameState.lanes.get(i)[0].terrain==Terrain.WALL) {
+                ctWall[i][0] = 1;
+                ctDamage[i][0] = 2;
+            } else if(gameState.lanes.get(i)[0].terrain==Terrain.MUD) {
+                ctWall[i][0] = 0;
+                ctDamage[i][0] = 1;
+            } else if(gameState.lanes.get(i)[0].terrain==Terrain.OIL_SPILL) {
+                ctWall[i][0] = 0;
+                ctDamage[i][0] = 1;
+            } else {
+                ctWall[i][0] = 0;
+                ctDamage[i][0] = 0;
+            }
+            for(int j=1;j<=end;j++) {
+                if(gameState.lanes.get(i)[j].terrain==Terrain.WALL) {
+                    ctWall[i][j] = ctWall[i][j-1]+1;
+                    ctDamage[i][j] = ctDamage[i][j-1]+2;
+                } else if(gameState.lanes.get(i)[j].terrain==Terrain.MUD || gameState.lanes.get(i)[j].terrain==Terrain.OIL_SPILL) {
+                    ctWall[i][j] = ctWall[i][j-1];
+                    ctDamage[i][j] = ctDamage[i][j-1]+1;
+                } else {
+                    ctWall[i][j] = ctWall[i][j-1];
+                    ctDamage[i][j] = ctDamage[i][j-1];
+                }
+            }
+        }
     }
 
     private void attackStrategy(Result cur) {
