@@ -245,21 +245,33 @@ public class Result {
     }
 
     public int greaterThanV6(Result res) {
+        // menentukan prioritas dari dua Result, yaitu this dan res.
+        // bila this diprioritaskan, kembalikan bilangan negatif.
+        // bila res diprioritaskan, kembalikan bilangan positif.
+        // bila sama, kembalikan 0.
+
+        // bila damage tidak sama, prioritaskan damage yang lebih kecil
         if(this.damage!=res.damage) {
             return this.damage-res.damage;
         }
+        // bila speed tidak sama, prioritaskan speed yang lebih besar
         if(this.speed!=res.speed) {
             return res.speed-this.speed;
         }
+        // bila jarak yang ditempuh berbeda setidaknya 2 blok, prioritaskan yang lebih jauh
         if(abs(res.xr-this.xr)>1) {
             return res.xr-this.xr;
         }
+        // bila powerups boost yang dimiliki tidak sama, prioritaskan yang lebih banyak
         if(res.ctBoost!=this.ctBoost) {
             return res.ctBoost-this.ctBoost;
         }
+        // bila powerups lizard yang dimiliki tidak sama, prioritaskan yang lebih banyak
         if(res.ctLizard!=this.ctLizard) {
             return res.ctLizard-this.ctLizard;
         }
+        // prioritaskan yang memiliki powerups attack lebih banyak
+        // Emp dibobot 4, Tweet dibobot 3, Oil dibobot 2.
         return (4*res.ctEmp+3*res.ctTweet+2*res.ctOil)-(4*this.ctEmp+3*this.ctTweet+2*this.ctOil);
     }
 }
