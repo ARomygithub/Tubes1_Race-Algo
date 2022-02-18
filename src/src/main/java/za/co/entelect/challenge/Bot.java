@@ -182,6 +182,7 @@ public class Bot {
         best = 0;
         for(int i=1;i<ctLane;i++){
             if (ctBest > ctBad[i]){
+                ctBest = ctBad[i];
                 best = i;
             }
         }
