@@ -4,8 +4,7 @@ import za.co.entelect.challenge.entities.GameState;
 import za.co.entelect.challenge.enums.PowerUps;
 import za.co.entelect.challenge.enums.Terrain;
 
-import static java.lang.Math.max;
-import static java.lang.Math.min;
+import static java.lang.Math.*;
 
 public class Result {
     public int time;
@@ -214,5 +213,53 @@ public class Result {
             return res.speed-this.speed;
         }
         return res.xr-this.xr;
+    }
+
+    public int greaterThanV4(Result res) {
+        if(this.damage!=res.damage) {
+            return this.damage-res.damage;
+        }
+        if(this.speed!=res.speed) {
+            return res.speed-this.speed;
+        }
+        if(abs(res.xr-this.xr)>1) {
+            return res.xr-this.xr;
+        }
+        return res.ctBoost-this.ctBoost;
+    }
+
+    public int greaterThanV5(Result res) {
+        if(this.damage!=res.damage) {
+            return this.damage-res.damage;
+        }
+        if(this.speed!=res.speed) {
+            return res.speed-this.speed;
+        }
+        if(abs(res.xr-this.xr)>1) {
+            return res.xr-this.xr;
+        }
+        if(res.ctBoost!=this.ctBoost) {
+            return res.ctBoost-this.ctBoost;
+        }
+        return res.ctLizard-this.ctLizard;
+    }
+
+    public int greaterThanV6(Result res) {
+        if(this.damage!=res.damage) {
+            return this.damage-res.damage;
+        }
+        if(this.speed!=res.speed) {
+            return res.speed-this.speed;
+        }
+        if(abs(res.xr-this.xr)>1) {
+            return res.xr-this.xr;
+        }
+        if(res.ctBoost!=this.ctBoost) {
+            return res.ctBoost-this.ctBoost;
+        }
+        if(res.ctLizard!=this.ctLizard) {
+            return res.ctLizard-this.ctLizard;
+        }
+        return (4*res.ctEmp+3*res.ctTweet+2*res.ctOil)-(4*this.ctEmp+3*this.ctTweet+2*this.ctOil);
     }
 }

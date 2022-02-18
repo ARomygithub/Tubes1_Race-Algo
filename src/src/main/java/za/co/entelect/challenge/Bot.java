@@ -20,14 +20,13 @@ public class Bot {
 //    private Car myCar;
 //    private final static Command FIX = new FixCommand();
     private Result bestRes = new Result();
-    private String bestCom;
+    public String bestCom;
     private Result[][] prefix;
     private int[][] ctWall;
     private int[][] ctDamage;
     private int start, end;
     public static int ctLane;
     private int[][] truck = new int[][] {{-1,-1}, {-1,-1}};
-    final private int track_length = 600;
 //    private int ctDebug=0;
 
     public Bot(Random random, GameState gameState) {
@@ -112,7 +111,7 @@ public class Bot {
         }
         updateBoostcounter(now);
 //        greedyByDamage(now, start, curLane);
-        Comparator<Command> comp = (Command c1, Command c2) -> c1.resi.greaterThanV3(c2.resi);
+        Comparator<Command> comp = (Command c1, Command c2) -> c1.resi.greaterThanV6(c2.resi);
         // ganti versi greaterThan buat coba kriteria yang lain
 
         // greedy by damage
@@ -146,20 +145,17 @@ public class Bot {
             commands.add(fc);
         }
         Collections.sort(commands,comp);
-        return commands.get(0).render();
+//        return commands.get(0).render();
+        bestCom = commands.get(0).render();
 //        gapake attack dulu
-//        boolean attack = bestCom.equals("NOTHING");
-//        if(bestCom.equals("ACCELERATE")) {
-//            if(now.boostcounter==1) {
-//                attack = true;
-//            } else {
-//                if(min(nextSpeed(now.speed),maxSpeedIfDamage[now.damage])==now.speed) attack=true;
-//            }
-//        }
-//        if(attack) {
-//            attackStrategy(now);
-//        }
-//        return bestCom;
+        boolean attack = bestCom.equals("NOTHING");
+        if(bestCom.equals("ACCELERATE")) {
+            if(min(nextSpeed(now.speed),maxSpeedIfDamage[now.damage])==now.speed) attack=true;
+        }
+        if(attack) {
+            attackStrategy(now);
+        }
+        return bestCom;
     }
 
     private void attackStrategy(Result cur) {
@@ -169,49 +165,18 @@ public class Bot {
         int otherY = gameState.opponent.position.lane-1;
         int otherSpeed = gameState.opponent.speed;
         if(myX>otherX) {
-            if(cur.ctOil>0) {
-                if(otherY==myY && otherX+otherSpeed>=myX) {
+            OilCommand oc = new OilCommand();
+            oc.run(cur,myX,myY,otherX,otherY,otherSpeed,this);
+            TweetCommand tc = new TweetCommand();
+            tc.run(cur,myX,myY,otherX,otherY,otherSpeed,this,gameState.lanes,ctDamage);
+            if(bestCom.equals("NOTHING") || bestCom.equals("ACCELERATE")) {
+                if(cur.ctOil*15+myX>=track_length) {
                     bestCom = "USE_OIL";
                 }
             }
-            if(cur.ctTweet>0) {
-                if(!bestCom.equals("USE_OIL")) {
-                    boolean flagTruck=true;
-                    int xLane = myX - gameState.lanes.get(0)[0].position.block;
-                    List<Lane[]> curLanes = gameState.lanes;
-                    Terrain myTerrain = curLanes.get(myY)[xLane].terrain;
-                    if(myTerrain == Terrain.WALL || myTerrain == Terrain.MUD || myTerrain == Terrain.OIL_SPILL) {
-                        flagTruck = false;
-                    }
-                    if(myY>0) {
-                        Terrain leftTerrain = curLanes.get(myY-1)[xLane].terrain;
-                        if(!(leftTerrain == Terrain.WALL || leftTerrain == Terrain.MUD || leftTerrain == Terrain.OIL_SPILL)) {
-                            flagTruck = false;
-                        }
-                    }
-                    if(myY+1<ctLane) {
-                        Terrain rTerrain = curLanes.get(myY+1)[xLane].terrain;
-                        if(!(rTerrain == Terrain.WALL || rTerrain == Terrain.MUD || rTerrain == Terrain.OIL_SPILL)) {
-                            flagTruck = false;
-                        }
-                    }
-                    if(flagTruck) {
-                        bestCom = "USE_TWEET " + (myY+1) + " " + (myX);
-                    }
-                }
-            }
-        } else {
-            if(cur.ctEmp>0) {
-                if(cur.speed+myX>otherX && abs(myY-otherY)==1) {
-                    bestCom = "USE_EMP";
-                }
-                if(otherX+cur.ctEmp*15>=track_length) {
-                    bestCom = "USE_EMP";
-                }
-                if(otherSpeed==15 && cur.ctEmp>2) {
-                    bestCom = "USE_EMP";
-                }
-            }
+        } else if(myX<otherX){
+            EmpCommand ec = new EmpCommand();
+            ec.run(cur,myX,myY,otherX,otherY,otherSpeed,this);
         }
     }
 

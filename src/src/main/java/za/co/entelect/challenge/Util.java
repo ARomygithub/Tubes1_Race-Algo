@@ -4,6 +4,7 @@ import static java.lang.Math.*;
 
 public class Util {
     public static final int[] maxSpeedIfDamage = {15,9,8,6,3,0};
+    public static final int track_length = 1500;
 
     public static void updateBoostcounter(Result cur) {
         if(cur.boosting) {
