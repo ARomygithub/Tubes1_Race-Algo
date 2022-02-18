@@ -26,6 +26,7 @@ public class Bot {
     private int[][] ctDamage;
     private int[] ctBad;
     private int start, end, best;
+    private boolean useLiz;
     public static int ctLane;
     private int[][] truck = new int[][] {{-1,-1}, {-1,-1}};
     final private int track_length = 600;
@@ -180,49 +181,48 @@ public class Bot {
         best = ctBad[0];
         for(int i=1;i<ctLane;i++){
             if (best > ctBad[i]){
-                best = ctBad[i];
+                best = i;
             }
         }
-        System.out.print(curLane);
-        System.out.print("\n");
-        System.out.print(best);
-        System.out.print("\n");
-        System.out.print(curLane);
-        System.out.print("\n");
-        System.out.print(best);
-        System.out.print("\n");
-        System.out.print(curLane);
-        System.out.print("\n");
-        System.out.print(best);
-        System.out.print("\n");
+
+        // Mengecek jika harus memakai lizard atau tidak
+        useLiz = false;
+        if (best == curLane){
+            for (int i=0; i<myCar.speed; i++){
+                if ((gameState.lanes.get(curLane)[i].terrain==Terrain.WALL || gameState.lanes.get(curLane)[i].terrain==Terrain.MUD || gameState.lanes.get(curLane)[i].terrain==Terrain.OIL_SPILL) && hasPowerUp(PowerUps.LIZARD, myCar.powerups)){
+                    useLiz = true;
+                    break;
+                }
+            }
+        }
         List<Command> commands = new ArrayList<>();
 
         AccelerateCommand ac = new AccelerateCommand();
+        TurnLeftCommand tlc = new TurnLeftCommand();
+        TurnRightCommand trc = new TurnRightCommand();
+        BoostCommand bc = new BoostCommand();
+        LizardCommand lc = new LizardCommand();
         if (myCar.speed == 0){
             commands.add(ac);
         }
-        TurnLeftCommand tlc = new TurnLeftCommand();
-        if(best < curLane) {
+        else if(best < curLane) {
             commands.add(tlc);
         }
-        TurnRightCommand trc = new TurnRightCommand();
-        if(best > curLane) {
+        else if(best > curLane) {
             commands.add(trc);
         }
-        BoostCommand bc = new BoostCommand();
-        if(best == curLane && hasPowerUp(PowerUps.BOOST, myCar.powerups)) {
+        else if(useLiz) {
+            commands.add(lc);
+        }
+        else if(best == curLane && hasPowerUp(PowerUps.BOOST, myCar.powerups)) {
             commands.add(bc);
         }
-        if(best == curLane) {
+        else if(best == curLane) {
             commands.add(ac);
         }
         // NothingCommand nc = new NothingCommand();
         // if(nc.run(now,start,curLane,truck,end,prefix,ctDamage,ctWall)) {
         //     commands.add(nc);
-        // }
-        // LizardCommand lc = new LizardCommand();
-        // if(lc.run(now,start,curLane,truck,end,prefix,ctDamage,ctWall,gameState)) {
-        //     commands.add(lc);
         // }
         // FixCommand fc = new FixCommand();
         // if(fc.run(now,start,curLane,truck,end,prefix,ctDamage,ctWall)) {
