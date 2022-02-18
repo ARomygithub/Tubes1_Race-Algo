@@ -10,7 +10,6 @@ import java.util.*;
 import static java.lang.Math.*;
 
 public class Bot {
-    private List<Integer> directionList = new ArrayList<>();
 
     private Random random;
     public GameState gameState;
@@ -44,8 +43,6 @@ public class Bot {
                 }
             }
         }
-        directionList.add(-1);
-        directionList.add(1);
     }
 
     public String run() {
