@@ -13,8 +13,6 @@ public class Bot {
 
     private Random random;
     public GameState gameState;
-//    private Car opponent;
-//    private Car myCar;
     private Result bestRes = new Result();
     public String bestCom;
     private Result[][] prefix;
@@ -23,13 +21,10 @@ public class Bot {
     private int start, end;
     public static int ctLane;
     private int[][] truck = new int[][] {{-1,-1}, {-1,-1}};
-//    private int ctDebug=0;
 
     public Bot(Random random, GameState gameState) {
         this.random = random;
         this.gameState = gameState;
-//        this.myCar = gameState.player;
-//        this.opponent = gameState.opponent;
         ctLane = gameState.lanes.size();
         int blockLength = gameState.lanes.get(0).length;
         for(int i=0;i<ctLane;i++) {

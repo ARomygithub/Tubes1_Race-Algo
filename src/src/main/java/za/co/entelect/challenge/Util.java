@@ -55,12 +55,11 @@ public class Util {
     }
 
     public static int[] updateXiYi(int x, int xi, int yi, Result resi, int[][] trucki, Result[][] prefix, int[][] ctDamage, int[][] ctWall) {
+        // memperbarui resi (bertipe Result) dari segala hal yang ditemui di lane yi dari block x+1 hingga xi.
         // tambah temp ke resi (powerups).
-        // damage dari ctWall, ctDamage, boosting, boostcounter juga.
+        // damage dari ctWall, ctDamage.
         boolean hitTruck=false;
         if(yi==trucki[0][1] && x<trucki[0][0] && trucki[0][0]<=xi) {
-//            System.out.printf("Tes trucki[0] di update%n");
-//            System.out.printf("%d x %d xi %d yi%n", x, xi, yi);
             hitTruck = true;
             xi = trucki[0][0]-1;
             trucki[0][0] = -1; trucki[0][1] = -1;

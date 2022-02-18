@@ -7,7 +7,7 @@ import za.co.entelect.challenge.enums.Terrain;
 import static java.lang.Math.*;
 
 public class Result {
-    public int time;
+    public int time; //time, xbonus akhirnya tidak digunakan
     public int speed;
     public int damage;
     public int ctBoost;
@@ -121,8 +121,6 @@ public class Result {
     }
 
     public void add(Result res) {
-//        return new Result(this.speed+res.speed,this.damage+res.damage,this.ctBoost+res.ctBoost,this.ctLizard+res.ctLizard,this.ctEmp+res.ctEmp,this.ctTweet+res.ctTweet,this.ctOil+res.ctOil,this.boostcounter+res.boostcounter);
-//        time +=res.time;
         speed +=res.speed;
         damage +=res.damage;
         ctBoost +=res.ctBoost;
@@ -134,8 +132,6 @@ public class Result {
     }
 
     public void minus(Result res) {
-//        return new Result(this.speed-res.speed,this.damage-res.damage,this.ctBoost-res.ctBoost,this.ctLizard-res.ctLizard,this.ctEmp-res.ctEmp,this.ctTweet-res.ctTweet,this.ctOil-res.ctOil,this.boostcounter-res.boostcounter);
-//        time -=res.time;
         speed -=res.speed;
         damage -=res.damage;
         ctBoost -=res.ctBoost;
@@ -144,57 +140,6 @@ public class Result {
         ctTweet -=res.ctTweet;
         ctOil -=res.ctOil;
         boostcounter -=res.boostcounter;
-    }
-
-    public Boolean greaterThan(Result res) {
-        boolean ctBoostImportant = !(this.ctBoost>2 && res.ctBoost>2);
-        if(this.time<res.time) {
-            return true;
-        } else if(this.time==res.time) {
-            if(this.speed>res.speed) {
-                return true;
-            } else if(this.speed==res.speed) {
-                // kombinasi damage, boostcounter, powerups
-                // kalo orientasi nya kecepatan boost sm lizard penting.
-                if(this.damage<res.damage) {
-                    return true;
-                } else if(this.damage==res.damage) {
-                    if(ctBoostImportant) {
-                        if(this.ctBoost>res.ctBoost) {
-                            return true;
-                        } else if(this.ctBoost<res.ctBoost) {
-                            return false;
-                        }
-                    }
-                    if(this.xbonus>res.xbonus) {
-                        return true;
-                    } else if(this.xbonus<res.xbonus) {
-                        return false;
-                    }
-                    if(this.ctBoost>res.ctBoost) {
-                        return true;
-                    } else if(this.ctBoost<res.ctBoost) {
-                        return false;
-                    }
-                    if((this.boostcounter>res.boostcounter)||(boostcounter==res.boostcounter && ctLizard>res.ctLizard)) {
-                        return true;
-                    } else if(ctLizard==res.ctLizard) {
-                        if(ctEmp>res.ctEmp) {
-                            return true;
-                        } else if(ctEmp==res.ctEmp) {
-                            if(ctTweet>res.ctTweet) {
-                                return true;
-                            } else if(ctTweet==res.ctTweet) {
-                                if(ctOil>res.ctOil) {
-                                    return true;
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        return false;
     }
 
     public int greaterThanV1(Result res) {
